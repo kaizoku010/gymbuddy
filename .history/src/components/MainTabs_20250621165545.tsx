@@ -62,14 +62,14 @@ const MainTabs: React.FC<MainTabsProps> = ({ onLogout }) => {
       {/* Content - Scrollable, with left margin on desktop to account for fixed sidebar */}
       <div className="flex-1 lg:ml-64 overflow-y-auto">
         {/* Home button for mobile */}
-        {/* <div className="lg:hidden fixed top-4 left-4 z-20">
+        <div className="lg:hidden fixed top-4 left-4 z-20">
             <button
                 onClick={() => setActiveTab(0)}
                 className="bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-md border border-gray-200/30"
             >
                 <Home className="w-6 h-6 text-gray-700" />
             </button>
-        </div> */}
+        </div>
         <ActiveComponent onLogout={onLogout} />
       </div>
 

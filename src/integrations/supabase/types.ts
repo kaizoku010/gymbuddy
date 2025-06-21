@@ -9,6 +9,135 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      auction_views: {
+        Row: {
+          auction_id: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          user_id: string | null
+        }
+        Insert: {
+          auction_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          user_id?: string | null
+        }
+        Update: {
+          auction_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_views_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_views_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auctions: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          current_bid: number
+          description: string | null
+          end_time: string
+          id: string
+          image_url: string | null
+          reserve_price: number | null
+          start_time: string
+          starting_bid: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_bid?: number
+          description?: string | null
+          end_time: string
+          id?: string
+          image_url?: string | null
+          reserve_price?: number | null
+          start_time: string
+          starting_bid?: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_bid?: number
+          description?: string | null
+          end_time?: string
+          id?: string
+          image_url?: string | null
+          reserve_price?: number | null
+          start_time?: string
+          starting_bid?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bids: {
+        Row: {
+          amount: number
+          auction_id: string
+          bidder_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          amount: number
+          auction_id: string
+          bidder_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          amount?: number
+          auction_id?: string
+          bidder_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookmarks: {
         Row: {
           created_at: string
@@ -50,21 +179,74 @@ export type Database = {
           buddy_id: string
           created_at: string
           id: string
+          status: string
           user_id: string
         }
         Insert: {
           buddy_id: string
           created_at?: string
           id?: string
+          status?: string
           user_id: string
         }
         Update: {
           buddy_id?: string
           created_at?: string
           id?: string
+          status?: string
           user_id?: string
         }
         Relationships: []
+      }
+      buddy_request_pickups: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buddy_request_pickups_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buddy_request_pickups_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buddy_request_pickups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "nearby_users"
+            referencedColumns: ["nearby_user_id"]
+          },
+          {
+            foreignKeyName: "buddy_request_pickups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       buddy_requests: {
         Row: {
@@ -159,6 +341,56 @@ export type Database = {
         }
         Relationships: []
       }
+      items: {
+        Row: {
+          condition: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          estimated_value: number | null
+          id: string
+          image_url: string | null
+          lot_id: string
+          provenance: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          condition?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          image_url?: string | null
+          lot_id: string
+          provenance?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          condition?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          image_url?: string | null
+          lot_id?: string
+          provenance?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "items_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       likes: {
         Row: {
           created_at: string
@@ -191,6 +423,60 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lots: {
+        Row: {
+          auction_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          estimated_value_max: number | null
+          estimated_value_min: number | null
+          id: string
+          lot_number: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          auction_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_value_max?: number | null
+          estimated_value_min?: number | null
+          id?: string
+          lot_number: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          auction_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_value_max?: number | null
+          estimated_value_min?: number | null
+          id?: string
+          lot_number?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lots_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lots_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions_with_details"
             referencedColumns: ["id"]
           },
         ]
@@ -229,6 +515,48 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          read: boolean
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          read?: boolean
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          read?: boolean
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "nearby_users"
+            referencedColumns: ["nearby_user_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -279,11 +607,11 @@ export type Database = {
           id: string
           image_url: string | null
           post_type: string
+          selected_buddy_id: string | null
           tags: string[] | null
           updated_at: string
           user_id: string
           video_url: string | null
-          selected_buddy_id: string | null // ADDED
         }
         Insert: {
           content: string
@@ -291,11 +619,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           post_type?: string
+          selected_buddy_id?: string | null
           tags?: string[] | null
           updated_at?: string
           user_id: string
           video_url?: string | null
-          selected_buddy_id?: string | null // ADDED
         }
         Update: {
           content?: string
@@ -303,18 +631,35 @@ export type Database = {
           id?: string
           image_url?: string | null
           post_type?: string
+          selected_buddy_id?: string | null
           tags?: string[] | null
           updated_at?: string
           user_id?: string
           video_url?: string | null
-          selected_buddy_id?: string | null // ADDED
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_selected_buddy_id_fkey"
+            columns: ["selected_buddy_id"]
+            isOneToOne: false
+            referencedRelation: "nearby_users"
+            referencedColumns: ["nearby_user_id"]
+          },
+          {
+            foreignKeyName: "posts_selected_buddy_id_fkey"
+            columns: ["selected_buddy_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
+          city: string | null
+          country: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -324,12 +669,12 @@ export type Database = {
           phone_number: string | null
           updated_at: string
           username: string | null
-          country: string | null // ADDED
-          city: string | null // ADDED
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           full_name?: string | null
           id: string
@@ -339,12 +684,12 @@ export type Database = {
           phone_number?: string | null
           updated_at?: string
           username?: string | null
-          country?: string | null // ADDED
-          city?: string | null // ADDED
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -354,49 +699,56 @@ export type Database = {
           phone_number?: string | null
           updated_at?: string
           username?: string | null
-          country?: string | null // ADDED
-          city?: string | null // ADDED
         }
         Relationships: []
       }
-      buddy_request_pickups: {
+      user_roles: {
         Row: {
-          id: string
-          post_id: string
-          user_id: string
           created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Insert: {
-          id?: string
-          post_id: string
-          user_id: string
           created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Update: {
-          id?: string
-          post_id?: string
-          user_id?: string
           created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "buddy_request_pickups_post_id_fkey",
-            columns: ["post_id"],
-            isOneToOne: false,
-            referencedRelation: "posts",
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "buddy_request_pickups_user_id_fkey",
-            columns: ["user_id"],
-            isOneToOne: false,
-            referencedRelation: "profiles",
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
     }
     Views: {
+      auctions_with_details: {
+        Row: {
+          bid_count: number | null
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          creator_avatar: string | null
+          creator_name: string | null
+          current_bid: number | null
+          current_highest_bid: number | null
+          description: string | null
+          end_time: string | null
+          id: string | null
+          image_url: string | null
+          reserve_price: number | null
+          start_time: string | null
+          starting_bid: number | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          view_count: number | null
+        }
+        Relationships: []
+      }
       nearby_users: {
         Row: {
           avatar_url: string | null
@@ -431,10 +783,16 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -453,7 +811,7 @@ export type Tables<
   }
     ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -549,6 +907,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
