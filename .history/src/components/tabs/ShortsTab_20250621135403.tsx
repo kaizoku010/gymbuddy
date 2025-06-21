@@ -23,8 +23,6 @@ interface Short {
   audio: string;
   likes: number;
   comments: number;
-  views: number;
-  created_at?: string; // Added created_at property
 }
 
 const SHORTS_PER_PAGE = 5;
@@ -59,6 +57,8 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           video_url,
           author_name,
           author_avatar,
+          likes_count,
+          comments_count,
           created_at
         `)
         .eq("post_type", "video")
@@ -80,9 +80,7 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           audio: "Original Audio",
           likes: post.likes_count ?? 0,
           comments: post.comments_count ?? 0,
-          views: post.views_count ?? 0,
           video_url: post.video_url,
-          created_at: post.created_at,
         }));
         setShorts(formattedShorts);
         if (data.length < SHORTS_PER_PAGE) setHasMore(false);
@@ -119,6 +117,8 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           video_url,
           author_name,
           author_avatar,
+          likes_count,
+          comments_count,
           created_at
         `)
       .eq("post_type", "video")
@@ -140,9 +140,7 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
         audio: "Original Audio",
         likes: post.likes_count ?? 0,
         comments: post.comments_count ?? 0,
-        views: post.views_count ?? 0,
         video_url: post.video_url,
-        created_at: post.created_at,
       }));
 
       setShorts((prev) => [...prev, ...formattedShorts]);
@@ -203,7 +201,7 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
     );
   }
 
-  if (!loading && shorts.length === 0) {
+  if (shorts.length === 0) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-center p-4">
         <div>
@@ -243,88 +241,80 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
                 </div>
 
                 {/* Video Controls Overlay */}
-                <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-end items-end pb-32 pr-4 space-y-6 z-30 pointer-events-auto">
-                  {/* Profile */}
-                  <div className="flex flex-col items-center">
-                    <Avatar className="w-12 h-12 border-2 border-white">
-                      <AvatarImage src={short.user.avatar} alt={`@${short.user.name}`} />
-                      <AvatarFallback>
-                        {short.user.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <button className="w-6 h-6 bg-black rounded-full flex items-center justify-center mt-2 border-2 border-white">
-                      <UserPlus className="w-3 h-3 text-white" />
-                    </button>
-                  </div>
-
-                  {/* Like */}
-                  <div className="flex flex-col items-center">
-                    <button
-                      onClick={() => toggleLike(short.id)}
-                      className="hover:scale-110 transition-transform"
-                    >
-                      <Heart
-                        className={`w-8 h-8 ${
-                          likedVideos.has(short.id)
-                            ? "fill-red-500 text-red-500"
-                            : "text-white"
-                        }`}
-                      />
-                    </button>
-                    <span className="text-white text-xs font-medium mt-1">
-                      {short.likes + (likedVideos.has(short.id) ? 1 : 0)}
-                    </span>
-                  </div>
-
-                  {/* Comment */}
-                  <div className="flex flex-col items-center">
-                    <button
-                      className="hover:scale-110 transition-transform"
-                      onClick={() => setOpenComments(short.id)}
-                    >
-                      <MessageCircle className="w-8 h-8 text-white" />
-                    </button>
-                    <span className="text-white text-xs font-medium mt-1">{short.comments}</span>
-                  </div>
-
-                  {/* Views */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" />
-                        <circle cx="12" cy="12" r="3" fill="white" />
-                      </svg>
+                <div className="">
+                  <div className="flex-1" />
+                  <div className="w-20 flex flex-col justify-end pb-32 pr-4 space-y-6">
+                    {/* Profile */}
+                    <div className="flex flex-col items-center">
+                      <Avatar className="w-12 h-12 border-2 border-white">
+                        <AvatarImage src={short.user.avatar} alt={`@${short.user.name}`} />
+                        <AvatarFallback>
+                          {short.user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <button className="w-6 h-6 bg-black rounded-full flex items-center justify-center mt-2 border-2 border-white">
+                        <UserPlus className="w-3 h-3 text-white" />
+                      </button>
                     </div>
-                    <span className="text-white text-xs font-medium mt-1">{short.views ?? 0}</span>
-                  </div>
 
-                  {/* Save */}
-                  <div className="flex flex-col items-center">
-                    <button
-                      onClick={() => toggleSave(short.id)}
-                      className="hover:scale-110 transition-transform"
-                    >
-                      <Bookmark
-                        className={`w-8 h-8 ${
-                          savedVideos.has(short.id)
-                            ? "fill-black text-black"
-                            : "text-white"
-                        }`}
-                      />
-                    </button>
-                  </div>
+                    {/* Like */}
+                    <div className="flex flex-col items-center">
+                      <button
+                        onClick={() => toggleLike(short.id)}
+                        className="hover:scale-110 transition-transform"
+                      >
+                        <Heart
+                          className={`w-8 h-8 ${
+                            likedVideos.has(short.id)
+                              ? "fill-red-500 text-red-500"
+                              : "text-white"
+                          }`}
+                        />
+                      </button>
+                      <span className="text-white text-xs font-medium mt-1">
+                        {((short.likes + (likedVideos.has(short.id) ? 1 : 0)) / 1000).toFixed(1)}K
+                      </span>
+                    </div>
 
-                  {/* Share */}
-                  <div className="flex flex-col items-center">
-                    <button className="hover:scale-110 transition-transform">
-                      <Share className="w-8 h-8 text-white" />
-                    </button>
-                  </div>
+                    {/* Comment */}
+                    <div className="flex flex-col items-center">
+                      <button
+                        className="hover:scale-110 transition-transform"
+                        onClick={() => setOpenComments(short.id)}
+                      >
+                        <MessageCircle className="w-8 h-8 text-white" />
+                      </button>
+                      <span className="text-white text-xs font-medium mt-1">{short.comments}</span>
+                    </div>
 
-                  {/* Audio */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center animate-spin-slow">
-                      <span className="text-white text-xs">🎵</span>
+                    {/* Save */}
+                    <div className="flex flex-col items-center">
+                      <button
+                        onClick={() => toggleSave(short.id)}
+                        className="hover:scale-110 transition-transform"
+                      >
+                        <Bookmark
+                          className={`w-8 h-8 ${
+                            savedVideos.has(short.id)
+                              ? "fill-black text-black"
+                              : "text-white"
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    {/* Share */}
+                    <div className="flex flex-col items-center">
+                      <button className="hover:scale-110 transition-transform">
+                        <Share className="w-8 h-8 text-white" />
+                      </button>
+                    </div>
+
+                    {/* Audio */}
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center animate-spin-slow">
+                        <span className="text-white text-xs">🎵</span>
+                      </div>
                     </div>
                   </div>
                 </div>

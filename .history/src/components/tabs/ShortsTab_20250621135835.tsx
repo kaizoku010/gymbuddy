@@ -59,6 +59,9 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           video_url,
           author_name,
           author_avatar,
+          likes_count,
+          comments_count,
+          views_count,
           created_at
         `)
         .eq("post_type", "video")
@@ -119,6 +122,9 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           video_url,
           author_name,
           author_avatar,
+          likes_count,
+          comments_count,
+          views_count,
           created_at
         `)
       .eq("post_type", "video")
@@ -272,7 +278,7 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
                       />
                     </button>
                     <span className="text-white text-xs font-medium mt-1">
-                      {short.likes + (likedVideos.has(short.id) ? 1 : 0)}
+                      {((short.likes + (likedVideos.has(short.id) ? 1 : 0)) / 1000).toFixed(1)}K
                     </span>
                   </div>
 

@@ -23,8 +23,7 @@ interface Short {
   audio: string;
   likes: number;
   comments: number;
-  views: number;
-  created_at?: string; // Added created_at property
+  views: number; // Added views property
 }
 
 const SHORTS_PER_PAGE = 5;
@@ -59,6 +58,9 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           video_url,
           author_name,
           author_avatar,
+          likes_count,
+          comments_count,
+          views_count,
           created_at
         `)
         .eq("post_type", "video")
@@ -82,7 +84,6 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           comments: post.comments_count ?? 0,
           views: post.views_count ?? 0,
           video_url: post.video_url,
-          created_at: post.created_at,
         }));
         setShorts(formattedShorts);
         if (data.length < SHORTS_PER_PAGE) setHasMore(false);
@@ -119,6 +120,9 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           video_url,
           author_name,
           author_avatar,
+          likes_count,
+          comments_count,
+          views_count,
           created_at
         `)
       .eq("post_type", "video")
@@ -142,7 +146,6 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
         comments: post.comments_count ?? 0,
         views: post.views_count ?? 0,
         video_url: post.video_url,
-        created_at: post.created_at,
       }));
 
       setShorts((prev) => [...prev, ...formattedShorts]);
@@ -203,7 +206,7 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
     );
   }
 
-  if (!loading && shorts.length === 0) {
+  if (shorts.length === 0) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-center p-4">
         <div>
@@ -272,7 +275,7 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
                       />
                     </button>
                     <span className="text-white text-xs font-medium mt-1">
-                      {short.likes + (likedVideos.has(short.id) ? 1 : 0)}
+                      {((short.likes + (likedVideos.has(short.id) ? 1 : 0)) / 1000).toFixed(1)}K
                     </span>
                   </div>
 
