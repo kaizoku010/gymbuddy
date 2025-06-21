@@ -261,7 +261,7 @@ const AuthStack: React.FC<AuthStackProps> = ({ onAuthComplete }) => {
         </div> */}
 
         {/* Switch Auth Mode */}
-        <div className="mt-6 text-center">
+        {/* <div className="mt-6 text-center">
           <span className="text-gray-600">
             {isSignUp ? 'Already have an account?' : "Don't have an account?"}
           </span>
@@ -272,7 +272,7 @@ const AuthStack: React.FC<AuthStackProps> = ({ onAuthComplete }) => {
           >
             {isSignUp ? 'Sign In' : 'Sign Up'}
           </button>
-        </div>
+        </div> */}
 
         {isSignUp && (
           <div className="mt-4 text-center text-xs text-gray-500">

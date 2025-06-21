@@ -231,7 +231,7 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
                 </div>
 
                 {/* Video Controls Overlay */}
-                <div className="">
+                <div className="absolute inset-0 flex">
                   <div className="flex-1" />
                   <div className="w-20 flex flex-col justify-end pb-32 pr-4 space-y-6">
                     {/* Profile */}

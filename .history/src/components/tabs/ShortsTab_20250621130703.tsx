@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Heart, MessageCircle, Share, Bookmark, UserPlus, Loader2, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,7 +58,6 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           comments_count,
           created_at
         `)
-        .eq("post_type", "video")
         .not("video_url", "is", null)
         .order("created_at", { ascending: false })
         .range(0, SHORTS_PER_PAGE - 1);
@@ -119,7 +117,6 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
           comments_count,
           created_at
         `)
-      .eq("post_type", "video")
       .not("video_url", "is", null)
       .order("created_at", { ascending: false })
       .range(from, to);
@@ -231,7 +228,7 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
                 </div>
 
                 {/* Video Controls Overlay */}
-                <div className="">
+                <div className="absolute inset-0 flex">
                   <div className="flex-1" />
                   <div className="w-20 flex flex-col justify-end pb-32 pr-4 space-y-6">
                     {/* Profile */}
@@ -307,7 +304,7 @@ const ShortsTab: React.FC<ShortsTabProps> = ({ onLogout }) => {
                 </div>
 
                 {/* Bottom Info */}
-                <div className="absolute bottom-20 left-0 right-20 px-6">
+                <div className="absolute bottom-20 left-0 right-0 px-6">
                   <div className="flex items-center space-x-3 mb-3">
                     <h3 className="text-white font-semibold text-lg">
                       @{short.user.name}
