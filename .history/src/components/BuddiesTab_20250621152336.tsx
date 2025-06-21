@@ -141,8 +141,13 @@ const BuddiesTab: React.FC = () => {
         profilesMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
       }
       setBuddyRequests((requests || []).map(r => ({
-        ...(r as any),
-        user_profile: profilesMap[r.user_id] || null
+        ...r,
+        user_profile: profilesMap[r.user_id] || null,
+        status: r.status,
+        buddy_id: r.buddy_id,
+        created_at: r.created_at,
+        id: r.id,
+        user_id: r.user_id
       })));
     } catch (error) {
       console.error('Error fetching buddy requests:', error);
@@ -174,8 +179,13 @@ const BuddiesTab: React.FC = () => {
       setBuddies((buddyRows || []).map(b => {
         const otherId = b.user_id === user.id ? b.buddy_id : b.user_id;
         return {
-          ...(b as any),
-          buddy_profile: profilesMap[otherId] || null
+          ...b,
+          buddy_profile: profilesMap[otherId] || null,
+          status: b.status,
+          buddy_id: b.buddy_id,
+          created_at: b.created_at,
+          id: b.id,
+          user_id: b.user_id
         };
       }));
     } catch (error) {

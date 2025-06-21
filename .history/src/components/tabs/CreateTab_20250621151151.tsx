@@ -80,7 +80,7 @@ const CreateTab: React.FC<CreateTabProps> = ({ onLogout }) => {
     }
     if (postType === 'image' || postType === 'video') {
       if (!file) {
-        toast({ title: "Validation Error", description: `Please select a ${postType} to upload.`, variant: "destructive" });
+        toast({ title: "Validation Error", description: `Please select a ${postType} to upload.", variant: "destructive" });
         return;
       }
     }

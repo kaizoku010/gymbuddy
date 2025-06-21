@@ -35,7 +35,7 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ profile, isOpen, 
       setUsername(profile.username || '');
       setBio(profile.bio || '');
       setAvatarUrl(profile.avatar_url || '');
-      setCountry((profile as any).country || '');
+      setCountry(profile.country || '');
     } else {
       // Try to auto-detect country if not set
       fetch('https://ipapi.co/json/')
@@ -50,8 +50,7 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ profile, isOpen, 
     setAvatarFile(file);
     // Upload to Supabase Storage
     const fileExt = file.name.split('.').pop();
-    // FIX: Only use user.id + extension, do not include 'avatars/' in the path
-    const filePath = `${user.id}.${fileExt}`;
+    const filePath = `avatars/${user.id}.${fileExt}`;
     const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
     if (uploadError) {
       toast({ title: 'Error uploading image', description: uploadError.message, variant: 'destructive' });

@@ -80,7 +80,7 @@ const CreateTab: React.FC<CreateTabProps> = ({ onLogout }) => {
     }
     if (postType === 'image' || postType === 'video') {
       if (!file) {
-        toast({ title: "Validation Error", description: `Please select a ${postType} to upload.`, variant: "destructive" });
+        toast({ title: "Validation Error", description: `Please select a ${postType} to upload.", variant: "destructive" });
         return;
       }
     }
@@ -100,7 +100,7 @@ const CreateTab: React.FC<CreateTabProps> = ({ onLogout }) => {
       let isVideo = false;
       if (file && (postType === 'image' || postType === 'video' || postType === 'buddy_request')) {
         toast({ title: "Uploading media..." });
-        const fileExt = file.name.split('.').pop() || '';
+        const fileExt = file.name.split('.').pop();
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
           .from('posts')
@@ -147,99 +147,10 @@ const CreateTab: React.FC<CreateTabProps> = ({ onLogout }) => {
     }
   };
 
-  // --- Buddy Request Pickup Logic ---
-  interface BuddyRequestPost {
-    id: string;
-    user_id: string;
-    selected_buddy_id?: string | null;
-    post_type: string;
-    // ...other post fields
-  }
-
-  const [buddyRequestPosts, setBuddyRequestPosts] = useState<BuddyRequestPost[]>([]);
-  const [pickups, setPickups] = useState<Record<string, any[]>>({}); // postId -> pickups
-  const [loadingPickups, setLoadingPickups] = useState<Record<string, boolean>>({});
-
-  // Fetch buddy request posts (example: you may want to fetch all or only user's)
-  const fetchBuddyRequestPosts = async () => {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('post_type', 'buddy_request')
-      .order('created_at', { ascending: false });
-    if (!error && data) setBuddyRequestPosts(data);
-  };
-
-  // Fetch pickups for a post
-  const fetchPickups = async (postId: string) => {
-    setLoadingPickups(prev => ({ ...prev, [postId]: true }));
-    const { data, error } = await supabase
-      .from('buddy_request_pickups')
-      .select('user_id, profiles:user_id(full_name, username, avatar_url)')
-      .eq('post_id', postId);
-    setPickups(prev => ({ ...prev, [postId]: data || [] }));
-    setLoadingPickups(prev => ({ ...prev, [postId]: false }));
-  };
-
-  // Pickup a buddy request
-  const handlePickup = async (postId: string) => {
-    try {
-      // Check if already picked up
-      if (pickups[postId]?.some(p => p.user_id === user.id)) {
-        toast({ title: 'Already Picked Up', description: 'You have already picked up this request.' });
-        return;
-      }
-      // Check if max pickups reached
-      if ((pickups[postId]?.length || 0) >= 5) {
-        toast({ title: 'Limit Reached', description: 'This request already has 5 pickups.' });
-        return;
-      }
-      const { error } = await supabase
-        .from('buddy_request_pickups')
-        .insert({ post_id: postId, user_id: user.id });
-      if (error) throw error;
-      toast({ title: 'Picked up!', description: 'You have picked up this request.' });
-      fetchPickups(postId);
-    } catch (e: any) {
-      toast({ title: 'Error', description: e.message, variant: 'destructive' });
-    }
-  };
-
-  // Select a buddy
-  const handleSelectBuddy = async (postId: string, selectedUserId: string) => {
-    try {
-      const { error } = await supabase
-        .from('posts')
-        .update({ selected_buddy_id: selectedUserId })
-        .eq('id', postId);
-      if (error) throw error;
-      toast({ title: 'Buddy Selected!', description: 'You have selected your gym buddy.' });
-      fetchBuddyRequestPosts();
-      fetchPickups(postId);
-    } catch (e: any) {
-      toast({ title: 'Error', description: e.message, variant: 'destructive' });
-    }
-  };
-
-  // Fetch posts and pickups on mount
-  React.useEffect(() => {
-    fetchBuddyRequestPosts();
-  }, []);
-
-  React.useEffect(() => {
-    buddyRequestPosts.forEach(post => {
-      fetchPickups(post.id);
-    });
-  }, [buddyRequestPosts.length]);
-
   if (postType) {
     return (
       <div className="min-h-screen bg-white">
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept={
-          postType === 'image' ? 'image/*' :
-          postType === 'video' ? 'video/*' :
-          postType === 'buddy_request' ? 'image/*,video/*' : undefined
-        } />
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept={postType === 'image' ? 'image/*' : 'video/*'} />
         {/* Header */}
         <div className="bg-white px-6 py-4 border-b border-gray-100 sticky top-0 z-10">
           <div className="flex items-center justify-between">
@@ -347,14 +258,12 @@ const CreateTab: React.FC<CreateTabProps> = ({ onLogout }) => {
                 {popularTags.map((tag, index) => (
                   <button
                     key={index}
-                    onClick={() => {
-                      if (!tags.includes(tag)) setTags([...tags, tag]);
-                    }}
-                    className={
+                    onClick={() => !tags.includes(tag) && setTags([...tags, tag])}
+                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
                       tags.includes(tag)
-                        ? 'px-3 py-1 rounded-full text-sm transition-colors bg-orange-500 text-white'
-                        : 'px-3 py-1 rounded-full text-sm transition-colors bg-gray-100 text-gray-600 hover:bg-orange-100'
-                    }
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-orange-100'
+                    }`}
                   >
                     {tag}
                   </button>
@@ -475,47 +384,6 @@ const CreateTab: React.FC<CreateTabProps> = ({ onLogout }) => {
             <li>• Engage with your gym buddy community</li>
           </ul>
         </div>
-
-        {/* --- Render Buddy Request Posts --- */}
-        {buddyRequestPosts.map(post => (
-          <div key={post.id} className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-semibold text-gray-900">Buddy Request</div>
-              {post.selected_buddy_id && <span className="text-green-600 font-medium">Buddy Selected</span>}
-            </div>
-            <div className="mb-2 text-gray-700">{post.content}</div>
-            {/* Pickup Button */}
-            {user && post.user_id !== user.id && !post.selected_buddy_id && (pickups[post.id]?.length || 0) < 5 && !pickups[post.id]?.some(p => p.user_id === user.id) && (
-              <button onClick={() => handlePickup(post.id)} className="bg-green-500 text-white px-4 py-2 rounded-lg mb-2">Pick Up Request</button>
-            )}
-            {/* Pickups List for Owner */}
-            {user && post.user_id === user.id && (
-              <div className="mt-2">
-                <div className="font-medium mb-1">Pickups:</div>
-                {loadingPickups[post.id] ? (
-                  <div>Loading...</div>
-                ) : (
-                  pickups[post.id]?.length === 0 ? <div className="text-gray-400">No pickups yet.</div> :
-                  pickups[post.id]?.map(p => (
-                    <div key={p.user_id} className="flex items-center space-x-2 mb-1">
-                      <img src={p.profiles?.avatar_url} alt="" className="w-8 h-8 rounded-full" />
-                      <span>{p.profiles?.full_name} (@{p.profiles?.username})</span>
-                      <button
-                        onClick={() => handleSelectBuddy(post.id, p.user_id)}
-                        className={
-                          'bg-orange-500 text-white px-2 py-1 rounded' + (post.selected_buddy_id === p.user_id ? ' opacity-50' : '')
-                        }
-                        disabled={post.selected_buddy_id === p.user_id}
-                      >
-                        {post.selected_buddy_id === p.user_id ? 'Selected' : 'Select'}
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        ))}
       </div>
     </div>
   );

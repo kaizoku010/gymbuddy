@@ -6,7 +6,7 @@ import { useRealtime } from '@/hooks/useRealtime';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import BuddyRequestPost from '../BuddyRequestPost';
+import BuddyRequestPost from '@/components/BuddyRequestPost';
 
 interface Post {
   id: string;
@@ -295,13 +295,9 @@ const FeedTab: React.FC<FeedTabProps> = ({ onLogout }) => {
             <p className="text-gray-600">Be the first to share something with the community!</p>
           </div>
         ) : (
-          posts.map((post) => (
+          posts.map((post) =>
             post.post_type === 'buddy_request' ? (
-              <BuddyRequestPost
-                key={post.id}
-                post={post}
-                fetchPosts={fetchPosts}
-              />
+              <BuddyRequestPost key={post.id} post={post} />
             ) : (
               <div key={post.id} className="bg-white rounded-xl shadow-sm border border-gray-200">
                 {/* Post Header */}

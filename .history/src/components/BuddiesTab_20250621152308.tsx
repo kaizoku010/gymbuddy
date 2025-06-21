@@ -122,26 +122,24 @@ const BuddiesTab: React.FC = () => {
     if (!user) return;
     try {
       // Get pending buddy requests where the current user is the buddy_id
-      const requestsRes = await supabase
+      const { data: requests, error } = await supabase
         .from('buddies')
         .select('*')
         .eq('buddy_id', user.id)
         .eq('status', 'pending');
-      const requests = requestsRes.data;
-      if (requestsRes.error) throw requestsRes.error;
+      if (error) throw error;
       // Fetch user profiles for each request
       const userIds = requests?.map(r => r.user_id) || [];
       let profilesMap: Record<string, any> = {};
       if (userIds.length > 0) {
-        const profilesRes = await supabase
+        const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name, username, avatar_url')
           .in('id', userIds);
-        const profiles = profilesRes.data;
         profilesMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
       }
       setBuddyRequests((requests || []).map(r => ({
-        ...(r as any),
+        ...r,
         user_profile: profilesMap[r.user_id] || null
       })));
     } catch (error) {
@@ -153,28 +151,26 @@ const BuddiesTab: React.FC = () => {
     if (!user) return;
     try {
       // Get accepted buddies where the current user is user_id or buddy_id
-      const buddyRowsRes = await supabase
+      const { data: buddyRows, error } = await supabase
         .from('buddies')
         .select('*')
         .or(`user_id.eq.${user.id},buddy_id.eq.${user.id}`)
         .eq('status', 'accepted');
-      const buddyRows = buddyRowsRes.data;
-      if (buddyRowsRes.error) throw buddyRowsRes.error;
+      if (error) throw error;
       // Get the other user's id for each buddy row
       const otherUserIds = (buddyRows || []).map(b => b.user_id === user.id ? b.buddy_id : b.user_id);
       let profilesMap: Record<string, any> = {};
       if (otherUserIds.length > 0) {
-        const profilesRes = await supabase
+        const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name, username, avatar_url')
           .in('id', otherUserIds);
-        const profiles = profilesRes.data;
         profilesMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
       }
       setBuddies((buddyRows || []).map(b => {
         const otherId = b.user_id === user.id ? b.buddy_id : b.user_id;
         return {
-          ...(b as any),
+          ...b,
           buddy_profile: profilesMap[otherId] || null
         };
       }));

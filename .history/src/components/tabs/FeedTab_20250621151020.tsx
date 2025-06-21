@@ -300,6 +300,7 @@ const FeedTab: React.FC<FeedTabProps> = ({ onLogout }) => {
               <BuddyRequestPost
                 key={post.id}
                 post={post}
+                user={user}
                 fetchPosts={fetchPosts}
               />
             ) : (

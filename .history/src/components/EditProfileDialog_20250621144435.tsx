@@ -24,10 +24,9 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ profile, isOpen, 
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [country, setCountry] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -35,12 +34,6 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ profile, isOpen, 
       setUsername(profile.username || '');
       setBio(profile.bio || '');
       setAvatarUrl(profile.avatar_url || '');
-      setCountry((profile as any).country || '');
-    } else {
-      // Try to auto-detect country if not set
-      fetch('https://ipapi.co/json/')
-        .then(res => res.json())
-        .then(data => setCountry(data.country_name || ''));
     }
   }, [profile, isOpen]);
 
@@ -50,8 +43,7 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ profile, isOpen, 
     setAvatarFile(file);
     // Upload to Supabase Storage
     const fileExt = file.name.split('.').pop();
-    // FIX: Only use user.id + extension, do not include 'avatars/' in the path
-    const filePath = `${user.id}.${fileExt}`;
+    const filePath = `avatars/${user.id}.${fileExt}`;
     const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
     if (uploadError) {
       toast({ title: 'Error uploading image', description: uploadError.message, variant: 'destructive' });
@@ -73,7 +65,6 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ profile, isOpen, 
       username,
       bio,
       avatar_url: avatarUrl,
-      country,
       updated_at: new Date().toISOString(),
     };
 
@@ -123,10 +114,6 @@ const EditProfileDialog: React.FC<EditProfileDialogProps> = ({ profile, isOpen, 
           <div>
             <label htmlFor="bio" className="text-sm font-medium text-gray-700">Bio</label>
             <Textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} className="mt-1"/>
-          </div>
-          <div>
-            <label htmlFor="country" className="text-sm font-medium text-gray-700">Country</label>
-            <Input id="country" value={country} onChange={e => setCountry(e.target.value)} className="mt-1" />
           </div>
         </div>
         <DialogFooter>

@@ -120,30 +120,19 @@ const BuddiesTab: React.FC = () => {
 
   const fetchBuddyRequests = async () => {
     if (!user) return;
+
     try {
-      // Get pending buddy requests where the current user is the buddy_id
-      const requestsRes = await supabase
+      const { data, error } = await (supabase as any)
         .from('buddies')
-        .select('*')
+        .select(`
+          *,
+          user_profile:user_id(full_name, username, avatar_url)
+        `)
         .eq('buddy_id', user.id)
         .eq('status', 'pending');
-      const requests = requestsRes.data;
-      if (requestsRes.error) throw requestsRes.error;
-      // Fetch user profiles for each request
-      const userIds = requests?.map(r => r.user_id) || [];
-      let profilesMap: Record<string, any> = {};
-      if (userIds.length > 0) {
-        const profilesRes = await supabase
-          .from('profiles')
-          .select('id, full_name, username, avatar_url')
-          .in('id', userIds);
-        const profiles = profilesRes.data;
-        profilesMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
-      }
-      setBuddyRequests((requests || []).map(r => ({
-        ...(r as any),
-        user_profile: profilesMap[r.user_id] || null
-      })));
+
+      if (error) throw error;
+      setBuddyRequests(data || []);
     } catch (error) {
       console.error('Error fetching buddy requests:', error);
     }
@@ -151,33 +140,20 @@ const BuddiesTab: React.FC = () => {
 
   const fetchBuddies = async () => {
     if (!user) return;
+
     try {
-      // Get accepted buddies where the current user is user_id or buddy_id
-      const buddyRowsRes = await supabase
+      const { data, error } = await (supabase as any)
         .from('buddies')
-        .select('*')
+        .select(`
+          *,
+          user_profile:user_id(full_name, username, avatar_url),
+          buddy_profile:buddy_id(full_name, username, avatar_url)
+        `)
         .or(`user_id.eq.${user.id},buddy_id.eq.${user.id}`)
         .eq('status', 'accepted');
-      const buddyRows = buddyRowsRes.data;
-      if (buddyRowsRes.error) throw buddyRowsRes.error;
-      // Get the other user's id for each buddy row
-      const otherUserIds = (buddyRows || []).map(b => b.user_id === user.id ? b.buddy_id : b.user_id);
-      let profilesMap: Record<string, any> = {};
-      if (otherUserIds.length > 0) {
-        const profilesRes = await supabase
-          .from('profiles')
-          .select('id, full_name, username, avatar_url')
-          .in('id', otherUserIds);
-        const profiles = profilesRes.data;
-        profilesMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
-      }
-      setBuddies((buddyRows || []).map(b => {
-        const otherId = b.user_id === user.id ? b.buddy_id : b.user_id;
-        return {
-          ...(b as any),
-          buddy_profile: profilesMap[otherId] || null
-        };
-      }));
+
+      if (error) throw error;
+      setBuddies(data || []);
     } catch (error) {
       console.error('Error fetching buddies:', error);
     }

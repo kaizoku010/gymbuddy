@@ -80,7 +80,7 @@ const CreateTab: React.FC<CreateTabProps> = ({ onLogout }) => {
     }
     if (postType === 'image' || postType === 'video') {
       if (!file) {
-        toast({ title: "Validation Error", description: `Please select a ${postType} to upload.`, variant: "destructive" });
+        toast({ title: "Validation Error", description: `Please select a ${postType} to upload.", variant: "destructive" });
         return;
       }
     }
@@ -502,9 +502,7 @@ const CreateTab: React.FC<CreateTabProps> = ({ onLogout }) => {
                       <span>{p.profiles?.full_name} (@{p.profiles?.username})</span>
                       <button
                         onClick={() => handleSelectBuddy(post.id, p.user_id)}
-                        className={
-                          'bg-orange-500 text-white px-2 py-1 rounded' + (post.selected_buddy_id === p.user_id ? ' opacity-50' : '')
-                        }
+                        className={`bg-orange-500 text-white px-2 py-1 rounded ${post.selected_buddy_id === p.user_id ? 'opacity-50' : ''}`}
                         disabled={post.selected_buddy_id === p.user_id}
                       >
                         {post.selected_buddy_id === p.user_id ? 'Selected' : 'Select'}

@@ -42,7 +42,6 @@ const BuddiesTab: React.FC = () => {
   const [buddies, setBuddies] = useState<BuddyRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProfile, setSelectedProfile] = useState<NearbyUser | null>(null);
 
   const { user } = useAuth();
   const { location, isLoading: locationLoading, getCurrentLocation } = useLocation();
@@ -73,7 +72,7 @@ const BuddiesTab: React.FC = () => {
   });
 
   const fetchNearbyUsers = async () => {
-    if (!user) return;
+    if (!user || !location) return;
 
     // Fetch current user's country/city
     const { data: userProfile } = await supabase
@@ -84,66 +83,52 @@ const BuddiesTab: React.FC = () => {
     const userCountry = userProfile?.country;
     const userCity = userProfile?.city;
 
-    if (!userCountry && !userCity) {
-      setNearbyUsers([]);
-      return;
-    }
+    try {
+      const { data, error } = await (supabase.rpc as any)('get_nearby_users', {
+        current_user_id: user.id,
+        user_latitude: location.latitude,
+        user_longitude: location.longitude,
+      });
 
-    // Query for users in the same city or country, excluding self
-    let query = supabase
-      .from('profiles')
-      .select('id, full_name, username, avatar_url, bio, country, city')
-      .neq('id', user.id);
-    if (userCity) {
-      query = query.eq('city', userCity);
-    } else if (userCountry) {
-      query = query.eq('country', userCountry);
-    }
-    const { data, error } = await query;
-    if (error) {
+      if (error) {
+        console.error('Error fetching nearby users:', error);
+        toast({
+          title: "Could not find nearby users",
+          description: "There may be an issue with the location service. Please try updating your location.",
+          variant: "destructive",
+        });
+        setNearbyUsers([]);
+        return;
+      }
+      // Filter by country and city if available
+      let filtered = data || [];
+      if (userCountry) {
+        filtered = filtered.filter((u: any) => u.country === userCountry);
+      }
+      if (userCity) {
+        filtered = filtered.filter((u: any) => u.city === userCity);
+      }
+      setNearbyUsers(filtered);
+    } catch (error) {
       console.error('Error fetching nearby users:', error);
-      setNearbyUsers([]);
-      return;
     }
-    // Add fake distance for UI compatibility
-    setNearbyUsers((data || []).map(u => ({
-      nearby_user_id: u.id,
-      full_name: u.full_name,
-      username: u.username,
-      avatar_url: u.avatar_url,
-      bio: u.bio,
-      country: u.country,
-      city: u.city,
-      distance_km: 0.1 // placeholder
-    })));
   };
 
   const fetchBuddyRequests = async () => {
     if (!user) return;
+
     try {
-      // Get pending buddy requests where the current user is the buddy_id
-      const requestsRes = await supabase
+      const { data, error } = await (supabase as any)
         .from('buddies')
-        .select('*')
+        .select(`
+          *,
+          user_profile:user_id(full_name, username, avatar_url)
+        `)
         .eq('buddy_id', user.id)
         .eq('status', 'pending');
-      const requests = requestsRes.data;
-      if (requestsRes.error) throw requestsRes.error;
-      // Fetch user profiles for each request
-      const userIds = requests?.map(r => r.user_id) || [];
-      let profilesMap: Record<string, any> = {};
-      if (userIds.length > 0) {
-        const profilesRes = await supabase
-          .from('profiles')
-          .select('id, full_name, username, avatar_url')
-          .in('id', userIds);
-        const profiles = profilesRes.data;
-        profilesMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
-      }
-      setBuddyRequests((requests || []).map(r => ({
-        ...(r as any),
-        user_profile: profilesMap[r.user_id] || null
-      })));
+
+      if (error) throw error;
+      setBuddyRequests(data || []);
     } catch (error) {
       console.error('Error fetching buddy requests:', error);
     }
@@ -151,33 +136,20 @@ const BuddiesTab: React.FC = () => {
 
   const fetchBuddies = async () => {
     if (!user) return;
+
     try {
-      // Get accepted buddies where the current user is user_id or buddy_id
-      const buddyRowsRes = await supabase
+      const { data, error } = await (supabase as any)
         .from('buddies')
-        .select('*')
+        .select(`
+          *,
+          user_profile:user_id(full_name, username, avatar_url),
+          buddy_profile:buddy_id(full_name, username, avatar_url)
+        `)
         .or(`user_id.eq.${user.id},buddy_id.eq.${user.id}`)
         .eq('status', 'accepted');
-      const buddyRows = buddyRowsRes.data;
-      if (buddyRowsRes.error) throw buddyRowsRes.error;
-      // Get the other user's id for each buddy row
-      const otherUserIds = (buddyRows || []).map(b => b.user_id === user.id ? b.buddy_id : b.user_id);
-      let profilesMap: Record<string, any> = {};
-      if (otherUserIds.length > 0) {
-        const profilesRes = await supabase
-          .from('profiles')
-          .select('id, full_name, username, avatar_url')
-          .in('id', otherUserIds);
-        const profiles = profilesRes.data;
-        profilesMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
-      }
-      setBuddies((buddyRows || []).map(b => {
-        const otherId = b.user_id === user.id ? b.buddy_id : b.user_id;
-        return {
-          ...(b as any),
-          buddy_profile: profilesMap[otherId] || null
-        };
-      }));
+
+      if (error) throw error;
+      setBuddies(data || []);
     } catch (error) {
       console.error('Error fetching buddies:', error);
     }
@@ -345,8 +317,7 @@ const BuddiesTab: React.FC = () => {
 
             <div className="grid gap-4">
               {filteredNearbyUsers.map((user) => (
-                <div key={user.nearby_user_id} className="bg-white p-4 rounded-xl border border-gray-200 cursor-pointer hover:shadow-md transition"
-                  onClick={() => setSelectedProfile(user)}>
+                <div key={user.nearby_user_id} className="bg-white p-4 rounded-xl border border-gray-200">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white text-lg">
                       {user.full_name?.charAt(0) || '?'}
@@ -355,14 +326,12 @@ const BuddiesTab: React.FC = () => {
                       <h3 className="font-semibold text-gray-900">{user.full_name}</h3>
                       <p className="text-sm text-gray-600">@{user.username}</p>
                       <p className="text-sm text-orange-600">{user.distance_km.toFixed(1)} km away</p>
-                      {(user.city || user.country) && (
-                        <p className="text-xs text-gray-500">
-                          {[user.city, user.country].filter(Boolean).join(', ')}
-                        </p>
+                      {user.city && (
+                        <p className="text-xs text-gray-500">{user.city}</p>
                       )}
                     </div>
                     <button
-                      onClick={e => { e.stopPropagation(); sendBuddyRequest(user.nearby_user_id); }}
+                      onClick={() => sendBuddyRequest(user.nearby_user_id)}
                       className="bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors"
                     >
                       <UserPlus className="w-5 h-5" />
@@ -431,17 +400,7 @@ const BuddiesTab: React.FC = () => {
               buddies.map((buddy) => {
                 const buddyProfile = buddy.user_id === user?.id ? buddy.buddy_profile : buddy.user_profile;
                 return (
-                  <div key={buddy.id} className="bg-white p-4 rounded-xl border border-gray-200 cursor-pointer hover:shadow-md transition"
-                    onClick={() => setSelectedProfile({
-                      nearby_user_id: buddyProfile?.username || '',
-                      full_name: buddyProfile?.full_name || '',
-                      username: buddyProfile?.username || '',
-                      avatar_url: buddyProfile?.avatar_url || '',
-                      bio: '',
-                      distance_km: 0,
-                      country: '',
-                      city: ''
-                    })}>
+                  <div key={buddy.id} className="bg-white p-4 rounded-xl border border-gray-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white text-lg">
@@ -463,26 +422,6 @@ const BuddiesTab: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Profile Dialog */}
-      {selectedProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl p-8 max-w-sm w-full relative">
-            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700" onClick={() => setSelectedProfile(null)}>&times;</button>
-            <div className="flex flex-col items-center">
-              <div className="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center text-white text-3xl mb-4">
-                {selectedProfile.full_name?.charAt(0) || '?'}
-              </div>
-              <h2 className="text-xl font-bold mb-1">{selectedProfile.full_name}</h2>
-              <p className="text-gray-600 mb-2">@{selectedProfile.username}</p>
-              {(selectedProfile.city || selectedProfile.country) && (
-                <p className="text-xs text-gray-500 mb-2">{[selectedProfile.city, selectedProfile.country].filter(Boolean).join(', ')}</p>
-              )}
-              {selectedProfile.bio && <p className="text-sm text-gray-700 mb-2">{selectedProfile.bio}</p>}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
